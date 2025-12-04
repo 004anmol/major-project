@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body th:replace="~{layout :: layout('Assignments', ~{::content})}">
+
+<th:block th:fragment="content">
+    <h2 class="mb-4"><i class="fas fa-tasks"></i> Assignments</h2>
+
+    <div class="table-responsive" th:if="${assignments != null and !assignments.isEmpty()}">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="assignment : ${assignments}">
+                <td th:text="${assignment.title}"></td>
+                <td th:text="${assignment.description}"></td>
+                <td th:text="${#temporals.format(assignment.deadline, 'dd MMM yyyy HH:mm')}"></td>
+                <td>
+                    <span th:if="${#temporals.isAfter(assignment.deadline, #temporals.createNow())}" class="badge bg-success">Active</span>
+                    <span th:unless="${#temporals.isAfter(assignment.deadline, #temporals.createNow())}" class="badge bg-danger">Expired</span>
+                </td>
+                <td>
+                    <a th:href="@{/student/assignment/{id}/submit(id=${assignment.id})}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-upload"></i> Submit
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${assignments == null or assignments.isEmpty()}" class="alert alert-info">
+        <i class="fas fa-info-circle"></i> No assignments available.
+    </div>
+</th:block>
+
+</body>
+</html>

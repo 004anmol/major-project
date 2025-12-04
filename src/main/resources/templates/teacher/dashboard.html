@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout('Teacher Dashboard', ~{::content})}">
+
+<body>
+
+<th:block th:fragment="content">
+
+    <h2 class="mb-4"><i class="fas fa-chalkboard-teacher"></i> Dashboard</h2>
+
+    <div class="row">
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5><i class="fas fa-users"></i> Students</h5>
+                    <p th:text="${students.size()} + ' students'"></p>
+                    <a th:href="@{/teacher/students}" class="btn btn-light">View Students</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5><i class="fas fa-tasks"></i> Assignments</h5>
+                    <p>Manage assignments</p>
+                    <a th:href="@{/teacher/assignments}" class="btn btn-light">View Assignments</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5><i class="fas fa-book"></i> Courses</h5>
+                    <p>Manage courses</p>
+                    <a th:href="@{/teacher/courses}" class="btn btn-light">View Courses</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</th:block>
+
+</body>
+</html>

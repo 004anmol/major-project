@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body th:replace="~{layout :: layout('Documents', ~{::content})}">
+
+<th:block th:fragment="content">
+    <h2 class="mb-4"><i class="fas fa-file-upload"></i> Documents</h2>
+
+    <a th:href="@{/student/document/upload}" class="btn btn-primary mb-3">
+        <i class="fas fa-upload"></i> Upload Document
+    </a>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>File Name</th>
+                <th>Request Message</th>
+                <th>Status</th>
+                <th>Remarks</th>
+                <th>Uploaded At</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="document : ${documents}">
+                <td th:text="${document.originalFileName}"></td>
+                <td th:text="${document.requestMessage}"></td>
+
+                <td>
+                    <span th:switch="${document.status}" class="badge">
+                        <span th:case="PENDING" class="badge bg-warning">Pending</span>
+                        <span th:case="REVIEWED" class="badge bg-info">Reviewed</span>
+                        <span th:case="APPROVED" class="badge bg-success">Approved</span>
+                        <span th:case="REJECTED" class="badge bg-danger">Rejected</span>
+                    </span>
+                </td>
+
+                <td th:text="${document.remarks ?: 'N/A'}"></td>
+                <td th:text="${#temporals.format(document.uploadedAt, 'dd MMM yyyy HH:mm')}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</th:block>
+
+</body>
+</html>

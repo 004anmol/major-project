@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title/text()}, ~{::content})}">
+
+<head>
+    <title>Student Dashboard</title>
+</head>
+
+<body>
+
+<th:block th:fragment="content">
+
+    <h2 class="mb-4"><i class="fas fa-home"></i> Dashboard</h2>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5><i class="fas fa-question-circle"></i> Quizzes</h5>
+                    <p>View and take quizzes</p>
+                    <a th:href="@{/student/quizzes}" class="btn btn-light">Go to Quizzes</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5><i class="fas fa-tasks"></i> Assignments</h5>
+                    <p>View and submit assignments</p>
+                    <a th:href="@{/student/assignments}" class="btn btn-light">Go to Assignments</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5><i class="fas fa-book"></i> Courses</h5>
+                    <p>Enroll in courses</p>
+                    <a th:href="@{/student/courses}" class="btn btn-light">Go to Courses</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</th:block>
+
+</body>
+</html>

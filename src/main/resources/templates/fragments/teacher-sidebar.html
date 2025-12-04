@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="sidebar">
+        <div class="p-3">
+            <h5 class="text-white mb-4">
+                <i class="fas fa-chalkboard-teacher"></i> Teacher Portal
+            </h5>
+            <a th:href="@{/teacher/dashboard}">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a th:href="@{/teacher/students}">
+                <i class="fas fa-users"></i> Students
+            </a>
+            <a th:href="@{/teacher/quizzes}">
+                <i class="fas fa-question-circle"></i> Quizzes
+            </a>
+            <a th:href="@{/teacher/quiz/create}">
+                <i class="fas fa-plus-circle"></i> Create Quiz
+            </a>
+            <a th:href="@{/teacher/assignments}">
+                <i class="fas fa-tasks"></i> Assignments
+            </a>
+            <a th:href="@{/teacher/assignment/create}">
+                <i class="fas fa-plus-circle"></i> Create Assignment
+            </a>
+            <a th:href="@{/teacher/documents}">
+                <i class="fas fa-file-alt"></i> Documents
+            </a>
+            <a th:href="@{/teacher/document/request}">
+                <i class="fas fa-file-upload"></i> Request Document
+            </a>
+            <a th:href="@{/teacher/notification/create}">
+                <i class="fas fa-bell"></i> Send Notification
+            </a>
+            <a th:href="@{/teacher/courses}">
+                <i class="fas fa-book"></i> Courses
+            </a>
+            <a th:href="@{/teacher/course/create}">
+                <i class="fas fa-plus-circle"></i> Create Course
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+

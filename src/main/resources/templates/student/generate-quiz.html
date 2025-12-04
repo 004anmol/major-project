@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body th:replace="~{layout :: layout('Generate AI Quiz', ~{::content})}">
+
+<th:block th:fragment="content">
+
+    <h2 class="mb-4"><i class="fas fa-robot"></i> Generate AI Quiz</h2>
+
+    <form th:action="@{/student/quiz/generate}" method="post" class="card p-4">
+
+        <div class="mb-3">
+            <label for="topic" class="form-label">Topic</label>
+            <input type="text" class="form-control" id="topic" name="topic" required placeholder="e.g., Java Programming">
+        </div>
+
+        <div class="mb-3">
+            <label for="difficulty" class="form-label">Difficulty</label>
+            <select class="form-select" id="difficulty" name="difficulty" required>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="numberOfQuestions" class="form-label">Number of Questions</label>
+            <input type="number" class="form-control" id="numberOfQuestions"
+                   name="numberOfQuestions" value="10" min="1" max="20" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-magic"></i> Generate Quiz
+        </button>
+    </form>
+
+</th:block>
+
+</body>
+</html>

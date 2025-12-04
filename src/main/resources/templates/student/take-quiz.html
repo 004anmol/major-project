@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body th:replace="~{layout :: layout('Take Quiz', ~{::content})}">
+
+<th:block th:fragment="content">
+
+    <h2 class="mb-4" th:text="'Take Quiz: ' + ${quiz.title}"></h2>
+
+    <form id="quizForm"
+          th:action="@{/student/quiz/{id}/submit(id=${quiz.id})}"
+          method="post">
+
+        <div id="questionsContainer"></div>
+
+        <input type="hidden" id="answers" name="answers" value="{}">
+
+        <button type="submit" class="btn btn-primary mt-3">
+            <i class="fas fa-paper-plane"></i> Submit Quiz
+        </button>
+
+    </form>
+
+</th:block>
+
+<script th:inline="javascript">
+    var questions = /*[[${quiz.questions}]]*/ '';
+    var answers = {};
+
+    $(document).ready(function() {
+
+        try {
+            var quizData = JSON.parse(questions);
+
+            if (quizData.questions) {
+
+                quizData.questions.forEach(function(q, index) {
+
+                    var html = '<div class="card mb-3"><div class="card-body">';
+                    html += '<h5>Question ' + (index + 1) + ': ' + q.question + '</h5>';
+
+                    q.options.forEach(function(option, optIndex) {
+                        html += '<div class="form-check">';
+                        html += '<input class="form-check-input" type="radio" name="q' + index + '" id="q' + index + '_' + optIndex + '" value="' + optIndex + '">';
+                        html += '<label class="form-check-label" for="q' + index + '_' + optIndex + '">' + option + '</label>';
+                        html += '</div>';
+                    });
+
+                    html += '</div></div>';
+                    $('#questionsContainer').append(html);
+
+                });
+            }
+
+        } catch (e) {
+            $('#questionsContainer').html('<div class="alert alert-danger">Error loading quiz questions</div>');
+        }
+
+    });
+
+    $(document).on('change', 'input[type="radio"]', function() {
+        var name = $(this).attr('name');
+        var value = $(this).val();
+        answers[name] = parseInt(value);
+        $('#answers').val(JSON.stringify(answers));
+    });
+</script>
+
+</body>
+</html>

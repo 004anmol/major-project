@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" th:fragment="navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-graduation-cap"></i> AI Mentoring System
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span sec:authorize="isAuthenticated()" class="navbar-text me-3">
+                    Welcome, <span sec:authentication="name"></span>
+                </span>
+                <a sec:authorize="isAuthenticated()" class="nav-link" th:href="@{/logout}">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+</body>
+</html>
+
+
+
+
