@@ -58,10 +58,6 @@ spring.datasource.url=jdbc:postgresql://localhost:5432/ai_mentoring_db
 spring.datasource.username=your_postgres_username
 spring.datasource.password=your_postgres_password
 
-# Grok API Configuration
-grok.api.url=https://api.x.ai/v1/chat/completions
-grok.api.key=YOUR_GROK_API_KEY_HERE
-```
 
 ### 3. Build and Run
 
