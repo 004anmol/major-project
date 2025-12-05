@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/student")
 public class StudentController {
@@ -54,10 +56,10 @@ public class StudentController {
 
     @PostMapping("/quiz/generate")
     public String generateQuiz(@RequestParam String topic,
-                              @RequestParam String difficulty,
-                              @RequestParam(defaultValue = "10") int numberOfQuestions,
-                              Authentication authentication,
-                              RedirectAttributes redirectAttributes) {
+                               @RequestParam String difficulty,
+                               @RequestParam(defaultValue = "10") int numberOfQuestions,
+                               Authentication authentication,
+                               RedirectAttributes redirectAttributes) {
         try {
             Student student = userService.getStudentByUsername(authentication.getName());
             quizService.generateAiQuiz(student, topic, difficulty, numberOfQuestions);
@@ -78,9 +80,9 @@ public class StudentController {
 
     @PostMapping("/quiz/{id}/submit")
     public String submitQuiz(@PathVariable Long id,
-                            @RequestParam String answers,
-                            Authentication authentication,
-                            RedirectAttributes redirectAttributes) {
+                             @RequestParam String answers,
+                             Authentication authentication,
+                             RedirectAttributes redirectAttributes) {
         try {
             Student student = userService.getStudentByUsername(authentication.getName());
             Quiz quiz = quizService.getQuizById(id);
@@ -127,9 +129,9 @@ public class StudentController {
 
     @PostMapping("/assignment/{id}/submit")
     public String submitAssignment(@PathVariable Long id,
-                                  @RequestParam("file") MultipartFile file,
-                                  Authentication authentication,
-                                  RedirectAttributes redirectAttributes) {
+                                   @RequestParam("file") MultipartFile file,
+                                   Authentication authentication,
+                                   RedirectAttributes redirectAttributes) {
         try {
             Student student = userService.getStudentByUsername(authentication.getName());
             Assignment assignment = assignmentService.getAssignmentById(id);
@@ -159,9 +161,9 @@ public class StudentController {
 
     @PostMapping("/document/upload")
     public String uploadDocument(@RequestParam("file") MultipartFile file,
-                                @RequestParam(required = false) String requestMessage,
-                                Authentication authentication,
-                                RedirectAttributes redirectAttributes) {
+                                 @RequestParam(required = false) String requestMessage,
+                                 Authentication authentication,
+                                 RedirectAttributes redirectAttributes) {
         try {
             Student student = userService.getStudentByUsername(authentication.getName());
             if (student.getMentor() == null) {
@@ -180,14 +182,24 @@ public class StudentController {
     @GetMapping("/courses")
     public String courses(Model model, Authentication authentication) {
         Student student = userService.getStudentByUsername(authentication.getName());
-        model.addAttribute("courses", courseService.getEnrolledCoursesForStudent(student));
+
+        // Get all courses in the system
+        List<Course> allCourses = courseService.getAllCourses();
+
+        // Get enrolled courses for the student
+        List<Course> enrolledCourses = courseService.getEnrolledCoursesForStudent(student);
+
+        model.addAttribute("allCourses", allCourses);
+        model.addAttribute("enrolledCourses", enrolledCourses);
+        model.addAttribute("student", student);
+
         return "student/courses";
     }
 
     @PostMapping("/course/{id}/enroll")
     public String enrollInCourse(@PathVariable Long id,
-                                Authentication authentication,
-                                RedirectAttributes redirectAttributes) {
+                                 Authentication authentication,
+                                 RedirectAttributes redirectAttributes) {
         try {
             Student student = userService.getStudentByUsername(authentication.getName());
             courseService.enrollStudentInCourse(student, id);
@@ -195,6 +207,21 @@ public class StudentController {
             return "redirect:/student/courses";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Failed to enroll: " + e.getMessage());
+            return "redirect:/student/courses";
+        }
+    }
+
+    @PostMapping("/course/{id}/unenroll")
+    public String unenrollFromCourse(@PathVariable Long id,
+                                     Authentication authentication,
+                                     RedirectAttributes redirectAttributes) {
+        try {
+            Student student = userService.getStudentByUsername(authentication.getName());
+            courseService.unenrollStudentFromCourse(student, id);
+            redirectAttributes.addFlashAttribute("success", "Unenrolled from course successfully!");
+            return "redirect:/student/courses";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to unenroll: " + e.getMessage());
             return "redirect:/student/courses";
         }
     }
@@ -212,4 +239,3 @@ public class StudentController {
         return "redirect:/student/notifications";
     }
 }
-
