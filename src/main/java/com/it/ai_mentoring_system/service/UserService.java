@@ -7,6 +7,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -26,6 +28,9 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Transactional
     public User registerUser(String username, String password, String email, String fullName, Role.RoleType roleType) {
@@ -62,6 +67,80 @@ public class UserService {
         return user;
     }
 
+    @Transactional
+    public Map<String, String> assignStudentsToTeacher(Teacher teacher, String emailsString) {
+        Map<String, String> results = new HashMap<>();
+
+        // Split emails by comma and trim whitespace
+        String[] emails = emailsString.split(",");
+
+        for (String email : emails) {
+            email = email.trim();
+
+            if (email.isEmpty()) {
+                continue;
+            }
+
+            try {
+                // Find user by email
+                Optional<User> userOpt = userRepository.findByEmail(email);
+
+                if (!userOpt.isPresent()) {
+                    results.put(email, "Email not found in system");
+                    continue;
+                }
+
+                User user = userOpt.get();
+
+                // Check if user is a student
+                if (user.getRole().getName() != Role.RoleType.STUDENT) {
+                    results.put(email, "User is not a student");
+                    continue;
+                }
+
+                // Find student record
+                Optional<Student> studentOpt = studentRepository.findByUserUsername(user.getUsername());
+
+                if (!studentOpt.isPresent()) {
+                    results.put(email, "Student record not found");
+                    continue;
+                }
+
+                Student student = studentOpt.get();
+
+                // Check if student already has this teacher
+                if (student.getMentor() != null && student.getMentor().getId().equals(teacher.getId())) {
+                    results.put(email, "Already assigned to you");
+                    continue;
+                }
+
+                // Assign teacher to student (reassign if already has a mentor)
+                student.setMentor(teacher);
+                studentRepository.save(student);
+
+                // Send notification to student
+                try {
+                    notificationService.createNotification(
+                            teacher,
+                            student,
+                            "Mentor Assigned",
+                            "You have been assigned " + teacher.getUser().getFullName() + " as your mentor."
+                    );
+                } catch (Exception e) {
+                    // Log notification error but don't fail the assignment
+                    System.err.println("Failed to send notification: " + e.getMessage());
+                }
+
+                results.put(email, "Success");
+
+            } catch (Exception e) {
+                results.put(email, "Error: " + e.getMessage());
+            }
+        }
+
+        return results;
+    }
+
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
@@ -76,7 +155,3 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
     }
 }
-
-
-
-

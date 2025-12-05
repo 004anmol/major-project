@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/teacher")
@@ -52,6 +54,41 @@ public class TeacherController {
         return "teacher/students";
     }
 
+    @GetMapping("/students/add")
+    public String addStudentsForm(Model model, Authentication authentication) {
+        Teacher teacher = userService.getTeacherByUsername(authentication.getName());
+        model.addAttribute("teacher", teacher);
+        return "teacher/add-students";
+    }
+
+    @PostMapping("/students/add")
+    public String addStudents(@RequestParam String emails,
+                              Authentication authentication,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            Teacher teacher = userService.getTeacherByUsername(authentication.getName());
+            Map<String, String> results = userService.assignStudentsToTeacher(teacher, emails);
+
+            long successCount = results.values().stream().filter(v -> v.equals("Success")).count();
+            long failCount = results.size() - successCount;
+
+            if (successCount > 0) {
+                redirectAttributes.addFlashAttribute("success",
+                        successCount + " student(s) assigned successfully!");
+            }
+            if (failCount > 0) {
+                redirectAttributes.addFlashAttribute("warning",
+                        failCount + " email(s) could not be assigned. Check details below.");
+            }
+
+            redirectAttributes.addFlashAttribute("assignmentResults", results);
+            return "redirect:/teacher/students/add";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to assign students: " + e.getMessage());
+            return "redirect:/teacher/students/add";
+        }
+    }
+
     @GetMapping("/document/request")
     public String requestDocumentForm(Model model, Authentication authentication) {
         Teacher teacher = userService.getTeacherByUsername(authentication.getName());
@@ -61,9 +98,9 @@ public class TeacherController {
 
     @PostMapping("/document/request")
     public String requestDocument(@RequestParam Long studentId,
-                                 @RequestParam String requestMessage,
-                                 Authentication authentication,
-                                 RedirectAttributes redirectAttributes) {
+                                  @RequestParam String requestMessage,
+                                  Authentication authentication,
+                                  RedirectAttributes redirectAttributes) {
         try {
             Teacher teacher = userService.getTeacherByUsername(authentication.getName());
             Student student = studentRepository.findById(studentId)
@@ -93,9 +130,9 @@ public class TeacherController {
 
     @PostMapping("/document/{id}/review")
     public String reviewDocument(@PathVariable Long id,
-                                @RequestParam String remarks,
-                                @RequestParam String status,
-                                RedirectAttributes redirectAttributes) {
+                                 @RequestParam String remarks,
+                                 @RequestParam String status,
+                                 RedirectAttributes redirectAttributes) {
         try {
             Document.DocumentStatus docStatus = Document.DocumentStatus.valueOf(status);
             documentService.reviewDocument(id, remarks, docStatus);
@@ -116,10 +153,10 @@ public class TeacherController {
 
     @PostMapping("/notification/create")
     public String createNotification(@RequestParam Long studentId,
-                                    @RequestParam String title,
-                                    @RequestParam String message,
-                                    Authentication authentication,
-                                    RedirectAttributes redirectAttributes) {
+                                     @RequestParam String title,
+                                     @RequestParam String message,
+                                     Authentication authentication,
+                                     RedirectAttributes redirectAttributes) {
         try {
             Teacher teacher = userService.getTeacherByUsername(authentication.getName());
             Student student = studentRepository.findById(studentId)
@@ -142,11 +179,11 @@ public class TeacherController {
 
     @PostMapping("/assignment/create")
     public String createAssignment(@RequestParam Long studentId,
-                                  @RequestParam String title,
-                                  @RequestParam String description,
-                                  @RequestParam String deadline,
-                                  Authentication authentication,
-                                  RedirectAttributes redirectAttributes) {
+                                   @RequestParam String title,
+                                   @RequestParam String description,
+                                   @RequestParam String deadline,
+                                   Authentication authentication,
+                                   RedirectAttributes redirectAttributes) {
         try {
             Teacher teacher = userService.getTeacherByUsername(authentication.getName());
             Student student = studentRepository.findById(studentId)
@@ -177,11 +214,11 @@ public class TeacherController {
 
     @PostMapping("/quiz/create")
     public String createQuiz(@RequestParam Long studentId,
-                            @RequestParam String title,
-                            @RequestParam String description,
-                            @RequestParam String questions,
-                            Authentication authentication,
-                            RedirectAttributes redirectAttributes) {
+                             @RequestParam String title,
+                             @RequestParam String description,
+                             @RequestParam String questions,
+                             Authentication authentication,
+                             RedirectAttributes redirectAttributes) {
         try {
             Teacher teacher = userService.getTeacherByUsername(authentication.getName());
             Student student = studentRepository.findById(studentId)
@@ -209,10 +246,10 @@ public class TeacherController {
 
     @PostMapping("/course/create")
     public String createCourse(@RequestParam String title,
-                              @RequestParam String description,
-                              @RequestParam String youtubePlaylistUrl,
-                              Authentication authentication,
-                              RedirectAttributes redirectAttributes) {
+                               @RequestParam String description,
+                               @RequestParam String youtubePlaylistUrl,
+                               Authentication authentication,
+                               RedirectAttributes redirectAttributes) {
         try {
             Teacher teacher = userService.getTeacherByUsername(authentication.getName());
             courseService.createCourse(teacher, title, description, youtubePlaylistUrl);
@@ -231,4 +268,3 @@ public class TeacherController {
         return "teacher/courses";
     }
 }
-

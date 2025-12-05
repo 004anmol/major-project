@@ -10,7 +10,17 @@
 
     <div class="row">
 
-        <div class="col-md-4 mb-3">
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5><i class="fas fa-user-plus"></i> Add Students</h5>
+                    <p>Assign students to mentorship</p>
+                    <a th:href="@{/teacher/students/add}" class="btn btn-light">Add Students</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
             <div class="card text-white bg-primary">
                 <div class="card-body">
                     <h5><i class="fas fa-users"></i> Students</h5>
@@ -20,7 +30,7 @@
             </div>
         </div>
 
-        <div class="col-md-4 mb-3">
+        <div class="col-md-3 mb-3">
             <div class="card text-white bg-success">
                 <div class="card-body">
                     <h5><i class="fas fa-tasks"></i> Assignments</h5>
@@ -30,7 +40,7 @@
             </div>
         </div>
 
-        <div class="col-md-4 mb-3">
+        <div class="col-md-3 mb-3">
             <div class="card text-white bg-info">
                 <div class="card-body">
                     <h5><i class="fas fa-book"></i> Courses</h5>
