@@ -2,6 +2,8 @@ package com.it.ai_mentoring_system.controller;
 
 import com.it.ai_mentoring_system.model.*;
 import com.it.ai_mentoring_system.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -34,6 +36,8 @@ public class StudentController {
     @Autowired
     private CourseService courseService;
 
+    private static final Logger logger = LoggerFactory.getLogger(GeminiApiService.class);
+
     @GetMapping("/dashboard")
     public String dashboard(Model model, Authentication authentication) {
         Student student = userService.getStudentByUsername(authentication.getName());
@@ -58,24 +62,58 @@ public class StudentController {
     public String generateQuiz(@RequestParam String topic,
                                @RequestParam String difficulty,
                                @RequestParam(defaultValue = "10") int numberOfQuestions,
+                               @RequestParam(required = false) Integer timeLimit,
                                Authentication authentication,
                                RedirectAttributes redirectAttributes) {
         try {
+            // Validate timeLimit
+            if (timeLimit == null || timeLimit < 5 || timeLimit > 60) {
+                timeLimit = 20; // Default to 20 minutes if invalid
+            }
+
+            // Validate numberOfQuestions
+            if (numberOfQuestions < 5) numberOfQuestions = 5;
+            if (numberOfQuestions > 20) numberOfQuestions = 20;
+
             Student student = userService.getStudentByUsername(authentication.getName());
-            quizService.generateAiQuiz(student, topic, difficulty, numberOfQuestions);
-            redirectAttributes.addFlashAttribute("success", "Quiz generated successfully!");
-            return "redirect:/student/quizzes";
+            Quiz quiz = quizService.generateAiQuiz(student, topic, difficulty, numberOfQuestions, timeLimit);
+
+            if (quiz != null) {
+                redirectAttributes.addFlashAttribute("success", "Quiz generated successfully!");
+                return "redirect:/student/quizzes";
+            } else {
+                throw new RuntimeException("Quiz generation returned null");
+            }
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Rate limit")) {
+                redirectAttributes.addFlashAttribute("error",
+                        "Rate limit exceeded. Please wait 1-2 minutes and try again. " +
+                                "Tip: Generate fewer questions or use a simpler topic.");
+            } else {
+                redirectAttributes.addFlashAttribute("error",
+                        "Failed to generate quiz. The AI service may be temporarily unavailable. " +
+                                "A fallback quiz has been created. Error: " + e.getMessage());
+            }
+            return "redirect:/student/quiz/generate";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Failed to generate quiz: " + e.getMessage());
+            logger.error("Unexpected error generating quiz", e);
+            redirectAttributes.addFlashAttribute("error",
+                    "An unexpected error occurred. Please try again with a different topic or fewer questions.");
             return "redirect:/student/quiz/generate";
         }
     }
 
     @GetMapping("/quiz/{id}/take")
     public String takeQuiz(@PathVariable Long id, Model model, Authentication authentication) {
-        Quiz quiz = quizService.getQuizById(id);
-        model.addAttribute("quiz", quiz);
-        return "student/take-quiz";
+        try {
+            Quiz quiz = quizService.getQuizById(id);
+            model.addAttribute("quiz", quiz);
+            return "student/take-quiz";
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Failed to load quiz: " + e.getMessage());
+            return "redirect:/student/quizzes";
+        }
     }
 
     @PostMapping("/quiz/{id}/submit")
@@ -90,6 +128,7 @@ public class StudentController {
             redirectAttributes.addFlashAttribute("success", "Quiz submitted successfully!");
             return "redirect:/student/quiz-results";
         } catch (Exception e) {
+            e.printStackTrace();
             redirectAttributes.addFlashAttribute("error", "Failed to submit quiz: " + e.getMessage());
             return "redirect:/student/quiz/" + id + "/take";
         }
@@ -183,10 +222,7 @@ public class StudentController {
     public String courses(Model model, Authentication authentication) {
         Student student = userService.getStudentByUsername(authentication.getName());
 
-        // Get all courses in the system
         List<Course> allCourses = courseService.getAllCourses();
-
-        // Get enrolled courses for the student
         List<Course> enrolledCourses = courseService.getEnrolledCoursesForStudent(student);
 
         model.addAttribute("allCourses", allCourses);

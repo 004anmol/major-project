@@ -39,6 +39,9 @@ public class Quiz {
     @Column(nullable = false)
     private Boolean isAiGenerated = false;
 
+    @Column
+    private Integer timeLimit; // Time limit in minutes (10, 20, or 30)
+
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL)
     private List<QuizResult> results = new ArrayList<>();
 
@@ -49,5 +52,3 @@ public class Quiz {
         createdAt = LocalDateTime.now();
     }
 }
-
-

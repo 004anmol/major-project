@@ -7,32 +7,75 @@
 
     <h2 class="mb-4"><i class="fas fa-robot"></i> Generate AI Quiz</h2>
 
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
     <form th:action="@{/student/quiz/generate}" method="post" class="card p-4">
 
         <div class="mb-3">
-            <label for="topic" class="form-label">Topic</label>
-            <input type="text" class="form-control" id="topic" name="topic" required placeholder="e.g., Java Programming">
+            <label for="topic" class="form-label">Topic *</label>
+            <input type="text" class="form-control" id="topic" name="topic" required
+                   placeholder="e.g., Java Programming, Data Structures, Machine Learning">
+            <small class="form-text text-muted">Enter the subject or topic for your quiz</small>
         </div>
 
         <div class="mb-3">
-            <label for="difficulty" class="form-label">Difficulty</label>
+            <label for="difficulty" class="form-label">Difficulty Level *</label>
             <select class="form-select" id="difficulty" name="difficulty" required>
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
+                <option value="">Select difficulty...</option>
+                <option value="Easy">Easy - Basic concepts and fundamentals</option>
+                <option value="Medium">Medium - Intermediate understanding</option>
+                <option value="Hard">Hard - Advanced topics and problem-solving</option>
             </select>
         </div>
 
         <div class="mb-3">
-            <label for="numberOfQuestions" class="form-label">Number of Questions</label>
+            <label for="numberOfQuestions" class="form-label">Number of Questions *</label>
             <input type="number" class="form-control" id="numberOfQuestions"
-                   name="numberOfQuestions" value="10" min="1" max="20" required>
+                   name="numberOfQuestions" value="10" min="5" max="20" required>
+            <small class="form-text text-muted">Choose between 5 to 20 questions</small>
         </div>
 
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-magic"></i> Generate Quiz
-        </button>
+        <div class="mb-3">
+            <label for="timeLimit" class="form-label">Time Limit (minutes) *</label>
+            <select class="form-select" id="timeLimit" name="timeLimit" required>
+                <option value="10">10 minutes</option>
+                <option value="20" selected>20 minutes</option>
+                <option value="30">30 minutes</option>
+            </select>
+            <small class="form-text text-muted">Select how long students have to complete the quiz</small>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-magic"></i> Generate Quiz
+            </button>
+            <a th:href="@{/student/quizzes}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Quizzes
+            </a>
+        </div>
     </form>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <i class="fas fa-info-circle"></i> Tips for Better Quiz Generation
+        </div>
+        <div class="card-body">
+            <ul class="mb-0">
+                <li>Be specific with your topic (e.g., "Object-Oriented Programming in Java" instead of just "Java")</li>
+                <li>Choose difficulty level based on your current knowledge</li>
+                <li>Start with fewer questions (5-10) for focused practice</li>
+                <li>Allow adequate time - roughly 1-2 minutes per question</li>
+            </ul>
+        </div>
+    </div>
 
 </th:block>
 

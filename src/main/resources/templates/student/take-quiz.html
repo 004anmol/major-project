@@ -1,70 +1,317 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        .quiz-hidden {
+            display: none !important;
+        }
+        #quizStartScreen {
+            min-height: 400px;
+        }
+        .question-card {
+            transition: all 0.3s ease;
+        }
+        .timer-warning {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .list-group-item-action:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
 
 <body th:replace="~{layout :: layout('Take Quiz', ~{::content})}">
 
 <th:block th:fragment="content">
 
-    <h2 class="mb-4" th:text="'Take Quiz: ' + ${quiz.title}"></h2>
+    <!-- Quiz Start Screen -->
+    <div id="quizStartScreen" class="card">
+        <div class="card-body text-center p-5">
+            <h2 class="mb-4">
+                <i class="fas fa-clipboard-list text-primary"></i>
+                <span th:text="${quiz.title}"></span>
+            </h2>
 
-    <form id="quizForm"
-          th:action="@{/student/quiz/{id}/submit(id=${quiz.id})}"
-          method="post">
+            <p class="lead mb-4" th:text="${quiz.description}"></p>
 
-        <div id="questionsContainer"></div>
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-8">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> Quiz Instructions</h5>
+                        <ul class="text-start mb-0">
+                            <li>Read each question carefully</li>
+                            <li>Select the best answer from the options provided</li>
+                            <li th:if="${quiz.timeLimit != null}">
+                                Time limit: <strong th:text="${quiz.timeLimit} + ' minutes'"></strong>
+                            </li>
+                            <li th:unless="${quiz.timeLimit != null}">No time limit - take your time</li>
+                            <li>You can review your answers before submitting</li>
+                            <li>Once submitted, you cannot change your answers</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
 
-        <input type="hidden" id="answers" name="answers" value="{}">
+            <div class="d-flex gap-3 justify-content-center">
+                <button type="button" class="btn btn-primary btn-lg" id="startBtn">
+                    <i class="fas fa-play"></i> Start Quiz
+                </button>
+                <a th:href="@{/student/quizzes}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
 
-        <button type="submit" class="btn btn-primary mt-3">
-            <i class="fas fa-paper-plane"></i> Submit Quiz
-        </button>
+    <!-- Quiz Content (Hidden Initially) -->
+    <div id="quizContent" class="quiz-hidden">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 th:text="'Quiz: ' + ${quiz.title}"></h2>
 
-    </form>
+            <div th:if="${quiz.timeLimit != null}" class="alert alert-info mb-0 p-2" id="timerDisplay">
+                <i class="fas fa-clock"></i> Time Remaining:
+                <strong id="timer">00:00</strong>
+            </div>
+        </div>
 
-</th:block>
+        <div class="alert alert-warning quiz-hidden" id="timeWarning">
+            <i class="fas fa-exclamation-triangle"></i> Only 2 minutes remaining!
+        </div>
 
-<script th:inline="javascript">
-    var questions = /*[[${quiz.questions}]]*/ '';
-    var answers = {};
+        <form id="quizForm"
+              th:action="@{/student/quiz/{id}/submit(id=${quiz.id})}"
+              method="post">
 
-    $(document).ready(function() {
+            <div id="questionsContainer"></div>
 
-        try {
-            var quizData = JSON.parse(questions);
+            <input type="hidden" id="answersInput" name="answers" value="{}">
 
-            if (quizData.questions) {
+            <div class="card mt-4 bg-light">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Progress:</strong>
+                            <span id="answeredCount">0</span> of <span id="totalQuestions">0</span> answered
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-paper-plane"></i> Submit Quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-                quizData.questions.forEach(function(q, index) {
+        </form>
+    </div>
 
-                    var html = '<div class="card mb-3"><div class="card-body">';
-                    html += '<h5>Question ' + (index + 1) + ': ' + q.question + '</h5>';
+    <script th:inline="javascript">
+        // Global variables
+        var questionsJson = /*[[${quiz.questions}]]*/ '{}';
+        var timeLimit = /*[[${quiz.timeLimit}]]*/ null;
+        var quizAnswers = {};
+        var timeRemaining = 0;
+        var timerInterval = null;
+        var quizStarted = false;
 
-                    q.options.forEach(function(option, optIndex) {
-                        html += '<div class="form-check">';
-                        html += '<input class="form-check-input" type="radio" name="q' + index + '" id="q' + index + '_' + optIndex + '" value="' + optIndex + '">';
-                        html += '<label class="form-check-label" for="q' + index + '_' + optIndex + '">' + option + '</label>';
-                        html += '</div>';
-                    });
+        console.log('=== QUIZ PAGE LOADED ===');
+        console.log('Questions JSON:', questionsJson);
+        console.log('Time Limit:', timeLimit);
 
-                    html += '</div></div>';
-                    $('#questionsContainer').append(html);
+        // Start Quiz Function
+        function startTheQuiz() {
+            console.log('=== START QUIZ CLICKED ===');
 
-                });
+            quizStarted = true;
+
+            var startScreen = document.getElementById('quizStartScreen');
+            var quizContent = document.getElementById('quizContent');
+
+            if (startScreen) {
+                startScreen.classList.add('quiz-hidden');
+                console.log('Start screen hidden');
             }
 
-        } catch (e) {
-            $('#questionsContainer').html('<div class="alert alert-danger">Error loading quiz questions</div>');
+            if (quizContent) {
+                quizContent.classList.remove('quiz-hidden');
+                console.log('Quiz content shown');
+            }
+
+            if (timeLimit && timeLimit > 0) {
+                timeRemaining = timeLimit * 60;
+                startTimer();
+                console.log('Timer started:', timeLimit, 'minutes');
+            }
+
+            window.scrollTo(0, 0);
         }
 
-    });
+        // Load Questions
+        function loadQuestions() {
+            console.log('=== LOADING QUESTIONS ===');
 
-    $(document).on('change', 'input[type="radio"]', function() {
-        var name = $(this).attr('name');
-        var value = $(this).val();
-        answers[name] = parseInt(value);
-        $('#answers').val(JSON.stringify(answers));
-    });
-</script>
+            try {
+                var quizData = JSON.parse(questionsJson);
+                console.log('Parsed data:', quizData);
+
+                if (!quizData.questions || quizData.questions.length === 0) {
+                    console.error('No questions found');
+                    document.getElementById('questionsContainer').innerHTML =
+                        '<div class="alert alert-danger">No questions found in this quiz.</div>';
+                    return;
+                }
+
+                console.log('Number of questions:', quizData.questions.length);
+                document.getElementById('totalQuestions').textContent = quizData.questions.length;
+
+                var container = document.getElementById('questionsContainer');
+                container.innerHTML = '';
+
+                for (var i = 0; i < quizData.questions.length; i++) {
+                    var q = quizData.questions[i];
+                    var questionHtml = createQuestionHtml(q, i);
+                    container.innerHTML += questionHtml;
+                }
+
+                console.log('Questions loaded successfully');
+
+            } catch (e) {
+                console.error('Error loading questions:', e);
+                document.getElementById('questionsContainer').innerHTML =
+                    '<div class="alert alert-danger">Error: ' + e.message + '</div>';
+            }
+        }
+
+        function createQuestionHtml(question, index) {
+            var html = '<div class="card mb-3 question-card" data-question="' + index + '">';
+            html += '<div class="card-body">';
+            html += '<div class="d-flex justify-content-between align-items-start mb-3">';
+            html += '<h5 class="mb-0">Question ' + (index + 1) + '</h5>';
+            html += '<span class="badge bg-secondary qbadge-' + index + '">Not Answered</span>';
+            html += '</div>';
+            html += '<p class="lead mb-3">' + escapeHtml(question.question) + '</p>';
+
+            if (question.options && question.options.length > 0) {
+                html += '<div class="list-group">';
+                for (var i = 0; i < question.options.length; i++) {
+                    html += '<label class="list-group-item list-group-item-action" style="cursor: pointer;">';
+                    html += '<input class="form-check-input me-2" type="radio" name="q' + index + '" ';
+                    html += 'value="' + i + '" onchange="handleAnswer(' + index + ',' + i + ')">';
+                    html += escapeHtml(question.options[i]);
+                    html += '</label>';
+                }
+                html += '</div>';
+            }
+
+            html += '</div></div>';
+            return html;
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function handleAnswer(questionIndex, answerIndex) {
+            console.log('Answer selected: Q' + questionIndex + ' = ' + answerIndex);
+
+            quizAnswers['q' + questionIndex] = parseInt(answerIndex);
+            document.getElementById('answersInput').value = JSON.stringify(quizAnswers);
+
+            var badge = document.querySelector('.qbadge-' + questionIndex);
+            if (badge) {
+                badge.classList.remove('bg-secondary');
+                badge.classList.add('bg-success');
+                badge.textContent = 'Answered';
+            }
+
+            updateProgress();
+        }
+
+        function updateProgress() {
+            var count = Object.keys(quizAnswers).length;
+            document.getElementById('answeredCount').textContent = count;
+        }
+
+        function startTimer() {
+            updateTimerDisplay();
+
+            timerInterval = setInterval(function() {
+                timeRemaining--;
+                updateTimerDisplay();
+
+                if (timeRemaining === 120) {
+                    document.getElementById('timeWarning').classList.remove('quiz-hidden');
+                }
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert('Time is up!');
+                    document.getElementById('quizForm').submit();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            var minutes = Math.floor(timeRemaining / 60);
+            var seconds = timeRemaining % 60;
+            var display = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            document.getElementById('timer').textContent = display;
+
+            var timerDisplay = document.getElementById('timerDisplay');
+            if (timerDisplay) {
+                if (timeRemaining <= 120) {
+                    timerDisplay.classList.add('alert-danger');
+                } else if (timeRemaining <= 300) {
+                    timerDisplay.classList.add('alert-warning');
+                }
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            console.log('=== WINDOW LOADED ===');
+
+            loadQuestions();
+
+            var startBtn = document.getElementById('startBtn');
+            if (startBtn) {
+                console.log('Start button found');
+                startBtn.addEventListener('click', startTheQuiz);
+                console.log('Click listener attached');
+            } else {
+                console.error('Start button NOT found!');
+            }
+
+            var form = document.getElementById('quizForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    if (timerInterval) clearInterval(timerInterval);
+
+                    var answered = Object.keys(quizAnswers).length;
+                    var total = parseInt(document.getElementById('totalQuestions').textContent);
+
+                    if (answered < total) {
+                        if (!confirm('You have ' + (total - answered) + ' unanswered questions. Submit anyway?')) {
+                            e.preventDefault();
+                        }
+                    }
+                });
+            }
+        });
+
+        window.addEventListener('beforeunload', function(e) {
+            if (quizStarted && timeRemaining > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+
+</th:block>
 
 </body>
 </html>

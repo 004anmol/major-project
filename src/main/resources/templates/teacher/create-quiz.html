@@ -22,12 +22,26 @@
 
         <div class="mb-3">
             <label for="title" class="form-label">Title</label>
-            <input type="text" class="form-control" id="title" name="title" required>
+            <input type="text" class="form-control" id="title" name="title" required
+                   placeholder="e.g., Java Fundamentals Quiz">
         </div>
 
         <div class="mb-3">
             <label for="description" class="form-label">Description</label>
-            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            <textarea class="form-control" id="description" name="description" rows="3"
+                      placeholder="Brief description of the quiz"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="timeLimit" class="form-label">
+                <i class="fas fa-clock"></i> Time Limit
+            </label>
+            <select class="form-select" id="timeLimit" name="timeLimit" required>
+                <option value="10">10 Minutes</option>
+                <option value="20" selected>20 Minutes</option>
+                <option value="30">30 Minutes</option>
+            </select>
+            <small class="form-text text-muted">Students will have this much time to complete the quiz</small>
         </div>
 
         <div class="mb-3">
@@ -48,12 +62,38 @@
     ]
 }'>
             </textarea>
-            <small class="form-text text-muted">Enter questions in JSON format.</small>
+            <small class="form-text text-muted">Enter questions in JSON format. Each question must have: question, options (array of 4), correctAnswer (index 0-3), and explanation.</small>
         </div>
 
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i> Create Quiz
-        </button>
+        <div class="alert alert-info">
+            <strong><i class="fas fa-info-circle"></i> JSON Format Example:</strong>
+            <pre class="mt-2 mb-0" style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+{
+  "questions": [
+    {
+      "question": "What is the capital of France?",
+      "options": ["London", "Paris", "Berlin", "Madrid"],
+      "correctAnswer": 1,
+      "explanation": "Paris is the capital and largest city of France."
+    },
+    {
+      "question": "What is 2 + 2?",
+      "options": ["3", "4", "5", "6"],
+      "correctAnswer": 1,
+      "explanation": "2 + 2 equals 4."
+    }
+  ]
+}</pre>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Create Quiz
+            </button>
+            <a th:href="@{/teacher/quizzes}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Quizzes
+            </a>
+        </div>
 
     </form>
 

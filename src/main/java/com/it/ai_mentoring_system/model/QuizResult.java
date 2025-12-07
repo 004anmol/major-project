@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Entity
 @Table(name = "quiz_results")
@@ -35,10 +38,10 @@ public class QuizResult {
     private String answers; // JSON string of student answers
 
     @Column(columnDefinition = "TEXT")
-    private String strengths; // JSON array of strengths
+    private String strengths; // Delimited string of strengths
 
     @Column(columnDefinition = "TEXT")
-    private String weaknesses; // JSON array of weaknesses
+    private String weaknesses; // Delimited string of weaknesses
 
     @Column(columnDefinition = "TEXT")
     private String detailedAnalysis; // Detailed analysis text
@@ -49,5 +52,21 @@ public class QuizResult {
     protected void onCreate() {
         completedAt = LocalDateTime.now();
     }
-}
 
+    // Helper methods to convert delimited strings to lists for Thymeleaf
+    @Transient
+    public List<String> getStrengthsList() {
+        if (strengths == null || strengths.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return Arrays.asList(strengths.split("\\|\\|\\|"));
+    }
+
+    @Transient
+    public List<String> getWeaknessesList() {
+        if (weaknesses == null || weaknesses.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return Arrays.asList(weaknesses.split("\\|\\|\\|"));
+    }
+}

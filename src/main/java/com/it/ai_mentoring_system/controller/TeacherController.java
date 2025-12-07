@@ -217,13 +217,14 @@ public class TeacherController {
                              @RequestParam String title,
                              @RequestParam String description,
                              @RequestParam String questions,
+                             @RequestParam(required = false, defaultValue = "20") Integer timeLimit,
                              Authentication authentication,
                              RedirectAttributes redirectAttributes) {
         try {
             Teacher teacher = userService.getTeacherByUsername(authentication.getName());
             Student student = studentRepository.findById(studentId)
                     .orElseThrow(() -> new RuntimeException("Student not found"));
-            quizService.createManualQuiz(teacher, student, title, description, questions);
+            quizService.createManualQuiz(teacher, student, title, description, questions, timeLimit);
             redirectAttributes.addFlashAttribute("success", "Quiz created successfully!");
             return "redirect:/teacher/quizzes";
         } catch (Exception e) {
