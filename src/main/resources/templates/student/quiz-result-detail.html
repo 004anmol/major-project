@@ -37,7 +37,12 @@
             <div class="card bg-success text-white mb-3">
                 <div class="card-body">
                     <h5><i class="fas fa-check-circle"></i> Strengths</h5>
-                    <div th:if="${result.strengths}" th:utext="${result.strengths}"></div>
+                    <ul th:if="${result.strengthsList != null and !result.strengthsList.isEmpty()}" class="mb-0">
+                        <li th:each="strength : ${result.strengthsList}" th:text="${strength}"></li>
+                    </ul>
+                    <p th:if="${result.strengthsList == null or result.strengthsList.isEmpty()}" class="mb-0">
+                        No strengths identified yet.
+                    </p>
                 </div>
             </div>
         </div>
@@ -46,7 +51,12 @@
             <div class="card bg-warning mb-3">
                 <div class="card-body">
                     <h5><i class="fas fa-exclamation-triangle"></i> Weaknesses</h5>
-                    <div th:if="${result.weaknesses}" th:utext="${result.weaknesses}"></div>
+                    <ul th:if="${result.weaknessesList != null and !result.weaknessesList.isEmpty()}" class="mb-0">
+                        <li th:each="weakness : ${result.weaknessesList}" th:text="${weakness}"></li>
+                    </ul>
+                    <p th:if="${result.weaknessesList == null or result.weaknessesList.isEmpty()}" class="mb-0">
+                        No weaknesses identified yet.
+                    </p>
                 </div>
             </div>
         </div>
@@ -57,6 +67,7 @@
         <div class="card-body">
             <h5><i class="fas fa-chart-bar"></i> Detailed Analysis</h5>
             <p th:if="${result.detailedAnalysis}" th:text="${result.detailedAnalysis}"></p>
+            <p th:unless="${result.detailedAnalysis}" class="text-muted">No detailed analysis available.</p>
         </div>
     </div>
 
