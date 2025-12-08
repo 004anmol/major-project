@@ -17,6 +17,7 @@
                 <th>Title</th>
                 <th>Description</th>
                 <th>Type</th>
+                <th>Status</th>
                 <th>Created</th>
                 <th>Actions</th>
             </tr>
@@ -29,10 +30,21 @@
                     <span th:if="${quiz.isAiGenerated}" class="badge bg-info">AI Generated</span>
                     <span th:unless="${quiz.isAiGenerated}" class="badge bg-secondary">Manual</span>
                 </td>
+                <td>
+                    <span th:if="${attemptedQuizIds.contains(quiz.id)}" class="badge bg-success">
+                        <i class="fas fa-check-circle"></i> Attempted
+                    </span>
+                    <span th:unless="${attemptedQuizIds.contains(quiz.id)}" class="badge bg-warning text-dark">
+                        <i class="fas fa-clock"></i> Not Attempted
+                    </span>
+                </td>
                 <td th:text="${#temporals.format(quiz.createdAt, 'dd MMM yyyy')}"></td>
                 <td>
-                    <a th:href="@{/student/quiz/{id}/take(id=${quiz.id})}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-play"></i> Take Quiz
+                    <a th:href="@{/student/quiz/{id}/take(id=${quiz.id})}"
+                       class="btn btn-sm btn-primary"
+                       th:classappend="${attemptedQuizIds.contains(quiz.id)} ? 'btn-secondary' : 'btn-primary'">
+                        <i class="fas fa-play"></i>
+                        <span th:text="${attemptedQuizIds.contains(quiz.id)} ? 'Retake Quiz' : 'Take Quiz'"></span>
                     </a>
                 </td>
             </tr>

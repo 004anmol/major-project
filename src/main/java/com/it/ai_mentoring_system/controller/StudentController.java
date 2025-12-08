@@ -13,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/student")
@@ -49,7 +51,16 @@ public class StudentController {
     @GetMapping("/quizzes")
     public String quizzes(Model model, Authentication authentication) {
         Student student = userService.getStudentByUsername(authentication.getName());
-        model.addAttribute("quizzes", quizService.getQuizzesForStudent(student));
+        List<Quiz> quizzes = quizService.getQuizzesForStudent(student);
+        List<QuizResult> quizResults = quizService.getQuizResultsForStudent(student);
+
+        // Create a set of quiz IDs that have been attempted
+        Set<Long> attemptedQuizIds = quizResults.stream()
+                .map(result -> result.getQuiz().getId())
+                .collect(Collectors.toSet());
+
+        model.addAttribute("quizzes", quizzes);
+        model.addAttribute("attemptedQuizIds", attemptedQuizIds);
         return "student/quizzes";
     }
 
